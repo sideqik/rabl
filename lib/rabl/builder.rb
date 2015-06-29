@@ -220,6 +220,18 @@ module Rabl
       # Checks if an attribute is present. If not, check if the configuration specifies that this is an error
       # attribute_present?(created_at) => true
       def attribute_present?(name)
+        if defined?(ActiveModel)
+          if @_object.respond_to?(:has_attribute?) && @_object.has_attribute?(name)
+            return true
+          else
+            begin
+              @_object.send(name) and return true
+            rescue ActiveModel::MissingAttributeError
+              return false
+            end
+          end
+        end
+
         if @_object.respond_to?(name)
           true
         elsif Rabl.configuration.raise_on_missing_attribute
